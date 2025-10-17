@@ -13,11 +13,16 @@ type ReminderInsert = {
 };
 
 function assertUuid(id: string, label = "id") {
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      id
+    )
+  ) {
     throw new Error(`Invalid ${label}`);
   }
 }
 
+/** Create a reminder for a specific contact */
 export async function createReminderForContact(input: {
   contact_id: string;
   title: string;
@@ -47,7 +52,7 @@ export async function createReminderForContact(input: {
     user_id: user.id,
   };
 
-  // Use local any-cast to bypass broken TS inference
+  // local any-cast to bypass strict generics
   const sb: any = supabase;
   const { error } = await sb.from("reminders").insert(values);
   if (error) throw new Error(error.message);
@@ -56,7 +61,12 @@ export async function createReminderForContact(input: {
   if (input.revalidate) revalidatePath(input.revalidate);
 }
 
-export async function toggleReminderDone(id: string, done: boolean, revalidate?: string) {
+/** Toggle done/undone */
+export async function toggleReminderDone(
+  id: string,
+  done: boolean,
+  revalidate?: string
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -66,7 +76,6 @@ export async function toggleReminderDone(id: string, done: boolean, revalidate?:
 
   assertUuid(id, "reminder id");
 
-  // Use local any-cast on update to avoid 'never' error
   const sb: any = supabase;
   const { error } = await sb.from("reminders").update({ done }).eq("id", id);
   if (error) throw new Error(error.message);
@@ -75,6 +84,7 @@ export async function toggleReminderDone(id: string, done: boolean, revalidate?:
   if (revalidate) revalidatePath(revalidate);
 }
 
+/** Delete a reminder */
 export async function deleteReminder(id: string, revalidate?: string) {
   const supabase = await createClient();
   const {
@@ -85,7 +95,6 @@ export async function deleteReminder(id: string, revalidate?: string) {
 
   assertUuid(id, "reminder id");
 
-  // Use local any-cast on delete as well to be consistent
   const sb: any = supabase;
   const { error } = await sb.from("reminders").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -93,3 +102,51 @@ export async function deleteReminder(id: string, revalidate?: string) {
   revalidatePath("/reminders");
   if (revalidate) revalidatePath(revalidate);
 }
+
+/** Snooze: push due_at forward by N minutes (default: 60) */
+export async function snoozeReminder(
+  id: string,
+  minutes = 60,
+  revalidate?: string
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser();
+  if (userErr || !user) throw new Error("Unauthorized");
+
+  assertUuid(id, "reminder id");
+
+  // Use `any` casts only at the DB call sites to dodge TS 'never' issues
+  const sb: any = supabase;
+
+  // Read current due_at
+  const { data: row, error: readErr } = await sb
+    .from("reminders")
+    .select("due_at")
+    .eq("id", id)
+    .single();
+  if (readErr) throw new Error(readErr.message);
+
+  const current = new Date(String(row?.due_at ?? Date.now()));
+  const next = new Date(current.getTime() + minutes * 60_000).toISOString();
+
+  const { error } = await sb.from("reminders").update({ due_at: next }).eq("id", id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/reminders");
+  if (revalidate) revalidatePath(revalidate);
+}
+
+/* ------------------------------------------------------------------ */
+/* Compatibility exports so existing imports keep working              */
+/* ------------------------------------------------------------------ */
+
+// Old names used elsewhere in your code:
+export const createReminder = createReminderForContact;
+export const markReminderDone = (
+  id: string,
+  done: boolean,
+  revalidate?: string
+) => toggleReminderDone(id, done, revalidate);
