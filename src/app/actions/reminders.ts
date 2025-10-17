@@ -13,11 +13,7 @@ type ReminderInsert = {
 };
 
 function assertUuid(id: string, label = "id") {
-  if (
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      id
-    )
-  ) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
     throw new Error(`Invalid ${label}`);
   }
 }
@@ -30,10 +26,7 @@ export async function createReminderForContact(input: {
   revalidate?: string; // path to revalidate after insert
 }) {
   const supabase = await createClient();
-  const {
-    data: { user },
-    error: userErr,
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: userErr } = await supabase.auth.getUser();
   if (userErr || !user) throw new Error("Unauthorized");
 
   const contact_id = String(input.contact_id);
@@ -52,8 +45,7 @@ export async function createReminderForContact(input: {
     user_id: user.id,
   };
 
-  // local any-cast to bypass strict generics
-  const sb: any = supabase;
+  const sb: any = supabase; // pragmatic cast for Supabase generics
   const { error } = await sb.from("reminders").insert(values);
   if (error) throw new Error(error.message);
 
@@ -61,23 +53,32 @@ export async function createReminderForContact(input: {
   if (input.revalidate) revalidatePath(input.revalidate);
 }
 
-/** Toggle done/undone */
-export async function toggleReminderDone(
-  id: string,
-  done: boolean,
-  revalidate?: string
-) {
+/** Toggle done/undone.
+ *  Overload allows calling with just (id) to auto-toggle. */
+export function markReminderDone(id: string): Promise<void>;
+export function markReminderDone(id: string, done: boolean, revalidate?: string): Promise<void>;
+export async function markReminderDone(id: string, done?: boolean, revalidate?: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-    error: userErr,
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: userErr } = await supabase.auth.getUser();
   if (userErr || !user) throw new Error("Unauthorized");
 
   assertUuid(id, "reminder id");
 
   const sb: any = supabase;
-  const { error } = await sb.from("reminders").update({ done }).eq("id", id);
+
+  // If 'done' not provided, read current value and flip it.
+  let newDone = done;
+  if (typeof newDone === "undefined") {
+    const { data: row, error: readErr } = await sb
+      .from("reminders")
+      .select("done")
+      .eq("id", id)
+      .single();
+    if (readErr) throw new Error(readErr.message);
+    newDone = !Boolean(row?.done);
+  }
+
+  const { error } = await sb.from("reminders").update({ done: newDone }).eq("id", id);
   if (error) throw new Error(error.message);
 
   revalidatePath("/reminders");
@@ -87,10 +88,7 @@ export async function toggleReminderDone(
 /** Delete a reminder */
 export async function deleteReminder(id: string, revalidate?: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-    error: userErr,
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: userErr } = await supabase.auth.getUser();
   if (userErr || !user) throw new Error("Unauthorized");
 
   assertUuid(id, "reminder id");
@@ -104,21 +102,13 @@ export async function deleteReminder(id: string, revalidate?: string) {
 }
 
 /** Snooze: push due_at forward by N minutes (default: 60) */
-export async function snoozeReminder(
-  id: string,
-  minutes = 60,
-  revalidate?: string
-) {
+export async function snoozeReminder(id: string, minutes = 60, revalidate?: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-    error: userErr,
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: userErr } = await supabase.auth.getUser();
   if (userErr || !user) throw new Error("Unauthorized");
 
   assertUuid(id, "reminder id");
 
-  // Use `any` casts only at the DB call sites to dodge TS 'never' issues
   const sb: any = supabase;
 
   // Read current due_at
@@ -143,10 +133,7 @@ export async function snoozeReminder(
 /* Compatibility exports so existing imports keep working              */
 /* ------------------------------------------------------------------ */
 
-// Legacy names used elsewhere:
+// Legacy alias some files still import:
 export const createReminder = createReminderForContact;
-export const markReminderDone = (
-  id: string,
-  done: boolean,
-  revalidate?: string
-) => toggleReminderDone(id, done, revalidate);
+// NEW: provide the old name so pages importing it don't break
+export const toggleReminderDone = markReminderDone;
