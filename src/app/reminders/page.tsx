@@ -2,7 +2,9 @@ import AuthGate from "@/components/AuthGate";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
-import { markReminderDone, snoozeReminder } from "@/app/actions/reminders";
+// replace imports with:
+import { toggleReminderDone as markReminderDone, snoozeReminder } from "@/app/actions/reminders";
+
 
 export const dynamic = "force-dynamic";
 
