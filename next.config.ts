@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     // Don’t fail Vercel builds because of TS type errors
-    // (useful while we pragmatically cast around Supabase generics)
     ignoreBuildErrors: true,
   },
 };

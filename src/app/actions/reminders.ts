@@ -143,7 +143,7 @@ export async function snoozeReminder(
 /* Compatibility exports so existing imports keep working              */
 /* ------------------------------------------------------------------ */
 
-// Old names used elsewhere in your code:
+// Legacy names used elsewhere:
 export const createReminder = createReminderForContact;
 export const markReminderDone = (
   id: string,
