@@ -1,42 +1,96 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ==== Tailwind v4 + class-based dark mode ==== */
+/* Must be BEFORE the Tailwind import */
+@custom-variant dark (&:where(.dark, [data-theme="dark"]));
+
+@import "tailwindcss";
+
+/* ===== Theme base ===== */
+:root { color-scheme: light dark; }
+
+/* Structure only here */
+body { @apply min-h-screen antialiased; }
+
+/* Body colors AFTER Tailwind so they override utilities like .bg-white */
+html:not(.dark):not([data-theme="dark"]) body { @apply bg-white text-gray-900; }
+html.dark body, [data-theme="dark"] body { @apply bg-gray-950 text-gray-100; }
+
+/* Links */
+a { @apply text-gray-900 underline-offset-2 hover:underline; }
+:is(html.dark, [data-theme="dark"]) a { @apply text-gray-100; }
+
+/* Headings */
+h1, h2, h3, h4 { @apply tracking-tight text-gray-900; }
+:is(html.dark, [data-theme="dark"]) h1,
+:is(html.dark, [data-theme="dark"]) h2,
+:is(html.dark, [data-theme="dark"]) h3,
+:is(html.dark, [data-theme="dark"]) h4 { @apply text-gray-100; }
+
+/* ===== Reusable UI primitives ===== */
+.btn {
+  @apply inline-flex items-center justify-center gap-2
+         rounded-2xl border border-gray-300 bg-white px-3 py-1.5
+         text-sm font-medium text-gray-800 shadow-sm transition
+         hover:bg-gray-50 active:translate-y-px
+         focus:outline-none focus:ring-2 focus:ring-gray-300;
+}
+:is(html.dark, [data-theme="dark"]) .btn {
+  @apply border-gray-700 bg-gray-900 text-gray-100 hover:bg-gray-800 focus:ring-gray-700;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2
+         rounded-2xl border border-transparent px-3 py-1.5
+         text-sm font-semibold shadow-sm transition
+         bg-gray-900 text-white hover:bg-black active:translate-y-px
+         focus:outline-none focus:ring-2 focus:ring-gray-300;
+}
+:is(html.dark, [data-theme="dark"]) .btn-primary {
+  @apply bg-white text-gray-900 hover:bg-gray-200 focus:ring-gray-700;
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+.input {
+  @apply w-full rounded-xl border border-gray-300 bg-white
+         px-3 py-2 text-sm text-gray-900 outline-none
+         placeholder:text-gray-400
+         focus:ring-2 focus:ring-gray-300;
+}
+:is(html.dark, [data-theme="dark"]) .input {
+  @apply border-gray-700 bg-gray-900 text-gray-100 placeholder:text-gray-500 focus:ring-gray-700;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.label { @apply text-sm font-medium text-gray-700; }
+:is(html.dark, [data-theme="dark"]) .label { @apply text-gray-300; }
+
+.card {
+  @apply rounded-2xl border border-gray-200 bg-white shadow-sm;
+}
+:is(html.dark, [data-theme="dark"]) .card {
+  @apply border-gray-800 bg-gray-900 text-gray-100;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+/* ===== Tables ===== */
+table { @apply w-full border-collapse; }
+th, td { @apply align-middle; }
+thead { @apply bg-gray-50; }
+tbody tr { @apply bg-white; }
+:is(html.dark, [data-theme="dark"]) thead { @apply bg-gray-900/40; }
+:is(html.dark, [data-theme="dark"]) tbody tr { @apply bg-gray-900; }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+/* ===== Utility helpers ===== */
+.container-tight { @apply mx-auto max-w-5xl px-4; }
+.sr-only        { @apply sr-only; }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* ===== Dark-mode safety net LIMITED TO CARDS ===== */
+/* Only adjust text colors inside cards so white surfaces aren’t inverted. */
+:is(html.dark, [data-theme="dark"]) .card :where(.text-black, .text-gray-900, .text-gray-800,
+  .text-slate-900, .text-slate-800, .text-neutral-900, .text-neutral-800,
+  .text-zinc-900, .text-zinc-800, .text-stone-900, .text-stone-800) {
+  @apply text-gray-100;
+}
+:is(html.dark, [data-theme="dark"]) .card :where(.text-gray-700, .text-slate-700, .text-neutral-700, .text-zinc-700, .text-stone-700) {
+  @apply text-gray-300;
+}
+:is(html.dark, [data-theme="dark"]) .card :where(.text-gray-600, .text-slate-600, .text-neutral-600, .text-zinc-600, .text-stone-600,
+  .text-gray-500, .text-slate-500, .text-neutral-500, .text-zinc-500, .text-stone-500) {
+  @apply text-gray-400;
 }
