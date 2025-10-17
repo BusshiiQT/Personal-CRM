@@ -2,7 +2,7 @@ Personal CRM
 
 A “Notion + Contacts” app to stay on top of professional relationships. Built to showcase full-stack product skills: data modeling, secure auth, accessible UI, and pragmatic DX.
 
-Live Demo: https://vercel.com/busshiiqts-projects/personal-crm/1pTv6ok435aZvx1qoW5f3dETu5dj
+Live Demo: https://personal-crm-phi.vercel.app/
 
 
 Tech: Next.js 15 (App Router) · TypeScript · Tailwind v4 · Supabase (Auth + Postgres + RLS) · Vercel
