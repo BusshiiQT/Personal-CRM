@@ -8,15 +8,6 @@ Live Demo: https://personal-crm-phi.vercel.app/
 Tech: Next.js 15 (App Router) · TypeScript · Tailwind v4 · Supabase (Auth + Postgres + RLS) · Vercel
 
 <p> <img alt="Next.js" src="https://img.shields.io/badge/Next.js-15-black?logo=next.js" /> <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-blue?logo=typescript" /> <img alt="Tailwind" src="https://img.shields.io/badge/Tailwind%20CSS-v4-06B6D4?logo=tailwindcss&logoColor=white" /> <img alt="Supabase" src="https://img.shields.io/badge/Supabase-Postgres-3ECF8E?logo=supabase&logoColor=white" /> <img alt="Vercel" src="https://img.shields.io/badge/Deployed%20on-Vercel-000?logo=vercel" /> </p>
-What this shows a recruiter (in ~30 seconds)
-
-Product thinking: focuses on follow-through (reminders + interactions) not just static contacts.
-
-Full-stack execution: Server Actions, secure RLS policies, typed queries, clean UI in dark/light.
-
-DX & maintainability: modern Next 15 patterns, Tailwind v4, minimal config, clear folder structure.
-
-Portfolio-ready polish: CSV export, search & tags, simple analytics, a11y-friendly color system.
 
 Core Features
 
